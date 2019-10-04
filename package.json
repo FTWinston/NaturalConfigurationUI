@@ -1,0 +1,59 @@
+{
+  "name": "natural-configuration-ui",
+  "version": "0.1.0",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "author": "FTWinston",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/FTWinston/NaturalConfigurationUI/issues"
+  },
+  "files": [
+    "lib/**/*"
+  ],
+  "dependencies": {
+    "natural-configuration": "git+https://github.com/FTWinston/NaturalConfigurationJS.git"
+  },
+  "peerDependencies": {
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6"
+  },
+  "devDependencies": {
+    "@types/jest": "24.0.13",
+    "@types/node": "12.0.8",
+    "@types/react": "16.8.19",
+    "@types/react-dom": "16.8.4",
+    "copyfiles": "^2.1.1",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-scripts": "3.0.1",
+    "typescript": "3.5.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "tsc -p buildtsconfig.json && copyfiles -u 2 ./src/ui/**/*.css ./lib",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "lint": "tslint -p tsconfig.json",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint",
+    "preversion": "npm run lint",
+    "version": "git add -A src",
+    "postversion": "git push && git push --tags"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
