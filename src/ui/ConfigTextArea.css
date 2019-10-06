@@ -1,3 +1,56 @@
 .natConfig {
-    
+    position: relative;
+    border: 2px solid #666;
+    -webkit-text-size-adjust: none;
+}
+
+.natConfig * {
+    box-sizing: border-box;
+}
+
+.natConfig__highlights, .natConfig__text {
+    padding: 10px;
+    font-size: 1em;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; /* allow configuring? */
+}
+
+.natConfig__backdrop {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    overflow: auto;
+    pointer-events: none;
+}
+
+.natConfig__highlights {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: transparent;
+}
+
+.natConfig__text {
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    margin: 0;
+    border: none;
+    color: #222;
+    background-color: transparent;
+    overflow: auto;
+    resize: none;
+}
+
+.natConfig mark {
+    padding: 0;
+    border-radius: 3px;
+    color: transparent;
+    background-color: red;
+    opacity: 0.7;
+}
+
+.natConfig__text:focus {
+    outline: none;
 }
