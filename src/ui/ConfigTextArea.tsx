@@ -7,8 +7,9 @@ interface Props {
     style?: React.CSSProperties;
     text: string;
     onChange: (text: string) => void;
+    onEnterError?: (error: IParserError | undefined) => void;
     errors: IParserError[];
-    highlightedError?: number;
+    highlightedError?: IParserError;
 }
 
 export const ConfigTextArea: FunctionComponent<Props> = props => {
@@ -34,10 +35,6 @@ export const ConfigTextArea: FunctionComponent<Props> = props => {
     const textWithMarks = useMemo(() => {
         let text = props.text;
 
-        const selectedError = props.highlightedError === undefined
-            ? undefined
-            : props.errors[props.highlightedError]; // use the original, not the sorted version
-
         const sortedErrors = props.errors.sort((a, b) => a.startIndex < b.startIndex ? -1 : a.startIndex === b.startIndex ? 0 : 1);
 
         let offset = 0;
@@ -45,7 +42,7 @@ export const ConfigTextArea: FunctionComponent<Props> = props => {
             const startPos = error.startIndex + offset;
             const endPos = startPos + error.length;
 
-            const openingTag = error === selectedError
+            const openingTag = error === props.highlightedError
                 ? '<mark class="natConfig__mark natConfig__mark--selected">'
                 : '<mark class="natConfig__mark">'
 
@@ -66,11 +63,28 @@ export const ConfigTextArea: FunctionComponent<Props> = props => {
         return text;
     }, [props.text, props.errors, props.highlightedError, isIE])
 
-    const { onChange } = props;
+    const { onChange, onEnterError, errors } = props;
 
     const handleInput = useMemo(
-        () => (e: React.ChangeEvent<HTMLTextAreaElement>) => onChange(e.target.value),
-        [onChange]
+        () => (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+            onChange(e.target.value);
+
+            if (onEnterError !== undefined) {
+                const error = findError(errors, e.currentTarget.selectionStart, e.currentTarget.selectionEnd);
+                onEnterError(error);
+            }
+        },
+        [onChange, onEnterError, errors]
+    );
+
+    const handleSelect = useMemo(
+        () => onEnterError === undefined
+            ? undefined
+            : (e: React.SyntheticEvent<HTMLTextAreaElement, Event>) => {
+                const error = findError(errors, e.currentTarget.selectionStart, e.currentTarget.selectionEnd);
+                onEnterError(error);
+            },
+        [onEnterError, errors]
     );
 
     const handleScroll = useMemo(
@@ -101,8 +115,27 @@ export const ConfigTextArea: FunctionComponent<Props> = props => {
                 className="natConfig__text"
                 value={props.text}
                 onChange={handleInput}
+                onSelect={handleSelect}
                 onScroll={handleScroll}
             />
         </div>
     )
+}
+
+function findError(errors: IParserError[], startPos: number, endPos: number) {
+    if (endPos < startPos) {
+        [startPos, endPos] = [endPos, startPos];
+    }
+
+    const error = errors.find(err => err.startIndex <= startPos && err.startIndex + err.length > startPos);
+    
+    if (error === undefined) {
+        return undefined;
+    }
+
+    if (error.startIndex + error.length < endPos) {
+        return undefined;
+    }
+
+    return error;
 }
