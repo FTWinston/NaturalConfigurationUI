@@ -1,3 +1,11 @@
-.fullScreen {
-  height: 100vh;
+.app__errors {
+    margin-top: 2em;
+}
+
+.app__error {
+    cursor: pointer;
+}
+
+.app__error--selected {
+    color: dodgerblue;
 }

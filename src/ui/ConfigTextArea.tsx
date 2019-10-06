@@ -6,8 +6,9 @@ interface Props {
     className?: string;
     style?: React.CSSProperties;
     text: string;
-    onChange: (text: string, cursorPos: number) => void;
+    onChange: (text: string) => void;
     errors: IParserError[];
+    highlightedError?: number;
 }
 
 export const ConfigTextArea: FunctionComponent<Props> = props => {
@@ -30,34 +31,25 @@ export const ConfigTextArea: FunctionComponent<Props> = props => {
         [isIOS]
     );
 
-    const onChange = props.onChange;
-
-    const handleInput = useMemo(
-        () => (e: React.ChangeEvent<HTMLTextAreaElement>) => onChange(e.target.value, e.target.selectionStart),
-        [onChange]
-    );
-
-    const handleScroll = useMemo(
-        () => (e: React.UIEvent<HTMLTextAreaElement>) => {
-            if (backdrop.current === null) {
-                return;
-            }
-            backdrop.current.scrollLeft = e.currentTarget.scrollLeft;
-            backdrop.current.scrollTop = e.currentTarget.scrollTop;
-        },
-        [backdrop]
-    );
-
     const textWithMarks = useMemo(() => {
         let text = props.text;
-        const errors = props.errors.sort((a, b) => a.startIndex < b.startIndex ? -1 : a.startIndex === b.startIndex ? 0 : 1);
+
+        const selectedError = props.highlightedError === undefined
+            ? undefined
+            : props.errors[props.highlightedError]; // use the original, not the sorted version
+
+        const sortedErrors = props.errors.sort((a, b) => a.startIndex < b.startIndex ? -1 : a.startIndex === b.startIndex ? 0 : 1);
 
         let offset = 0;
-        for (const error of errors) {
+        for (const error of sortedErrors) {
             const startPos = error.startIndex + offset;
             const endPos = startPos + error.length;
 
-            text = text.slice(0, startPos) + '<mark>'
+            const openingTag = error === selectedError
+                ? '<mark class="natConfig__mark natConfig__mark--selected">'
+                : '<mark class="natConfig__mark">'
+
+            text = text.slice(0, startPos) + openingTag
                 + text.slice(startPos, endPos) + '</mark>'
                 + text.slice(endPos);
 
@@ -72,7 +64,25 @@ export const ConfigTextArea: FunctionComponent<Props> = props => {
         }
 
         return text;
-    }, [props.text, props.errors, isIE])
+    }, [props.text, props.errors, props.highlightedError, isIE])
+
+    const { onChange } = props;
+
+    const handleInput = useMemo(
+        () => (e: React.ChangeEvent<HTMLTextAreaElement>) => onChange(e.target.value),
+        [onChange]
+    );
+
+    const handleScroll = useMemo(
+        () => (e: React.UIEvent<HTMLTextAreaElement>) => {
+            if (backdrop.current === null) {
+                return;
+            }
+            backdrop.current.scrollLeft = e.currentTarget.scrollLeft;
+            backdrop.current.scrollTop = e.currentTarget.scrollTop;
+        },
+        [backdrop]
+    );
 
     const classes = props.className === undefined
         ? 'natConfig'
