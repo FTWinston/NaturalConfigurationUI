@@ -44,13 +44,14 @@ export const ConfigTextArea: FunctionComponent<Props> = props => {
 
             const openingTag = error === props.highlightedError
                 ? '<mark class="natConfig__mark natConfig__mark--selected">'
-                : '<mark class="natConfig__mark">'
+                : '<mark class="natConfig__mark">';
+            const closingTag = '</mark>';
 
             text = text.slice(0, startPos) + openingTag
-                + text.slice(startPos, endPos) + '</mark>'
+                + text.slice(startPos, endPos) + closingTag
                 + text.slice(endPos);
 
-            offset += 13;
+            offset += openingTag.length + closingTag.length;
         }
 
         text = text.replace(/\n$/g, '\n\n');
