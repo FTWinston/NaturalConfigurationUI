@@ -1,5 +1,27 @@
+.app {
+    display: grid;
+    grid-template-columns: auto 30em;
+    grid-template-rows: auto 15em;
+    grid-template-areas: "text examples"
+                         "errors errors";
+}
+
+.app__text {
+    grid-area: text;
+}
+
+.app__examples {
+    grid-area: examples;
+    margin: 0 2em;
+}
+
+.app__example {
+    cursor: pointer;
+}
+
 .app__errors {
-    margin-top: 2em;
+    grid-area: errors;
+    margin: 2em 0 0 1em;
 }
 
 .app__error {
@@ -8,4 +30,13 @@
 
 .app__error--selected {
     color: dodgerblue;
+}
+
+.app__exampleList,
+.app__errorList {
+    overflow-y: auto;
+}
+
+.app__sectionHeading {
+    font-weight: bold;
 }

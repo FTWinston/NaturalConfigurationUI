@@ -53,7 +53,7 @@ const parser = new ConfigurationParser<IString>([
         },
         examples: [
             'Convert to upper case',
-            'Conver to lower case'
+            'Convert to lower case'
         ]
     }
 ]);
@@ -63,11 +63,12 @@ const App = () => {
 
     const [errors, setErrors] = useState([] as IParserError[]);
 
-    const [highlightedError, setSelectedError] = useState(undefined as IParserError | undefined);
+    const [highlightedError, setHighlightedError] = useState(undefined as IParserError | undefined);
 
     return (
-        <>
+        <div className="app">
             <ConfigTextArea
+                className="app__text"
                 text={text}
                 onChange={newText => {
                     setText(newText);
@@ -75,22 +76,43 @@ const App = () => {
                 }}
                 errors={errors}
                 highlightedError={highlightedError}
-                onEnterError={err => setSelectedError(err)}
-                style={{height: '5em'}}
+                onEnterError={err => setHighlightedError(err)}
             />
 
-            <ol className="app__errors">
-                {errors.map((e, i) => {
-                    const classes = e === highlightedError
-                        ? 'app__error app__error--selected'
-                        : 'app__error'
-                    
-                    const clicked = () => setSelectedError(e === highlightedError ? undefined : e);
+            <div className="app__errors">
+                <div className="app__sectionHeading">Errors (click to highlight)</div>
+                <ol className="app__errorList">
+                    {errors.map((e, i) => {
+                        const classes = e === highlightedError
+                            ? 'app__error app__error--selected'
+                            : 'app__error'
+                        
+                        const clicked = () => setHighlightedError(e === highlightedError ? undefined : e);
 
-                    return <li key={i} className={classes} onClick={clicked}>{e.message} (position {e.startIndex}, length {e.length})</li>
-                })}
-            </ol>
-        </>
+                        return <li key={i} className={classes} onClick={clicked}>{e.message} (position {e.startIndex}, length {e.length})</li>
+                    })}
+                </ol>
+            </div>
+
+            <div className="app__examples">
+                <div className="app__sectionHeading">Example sentences (click to append)</div>
+                <ul className="app__exampleList">
+                    {parser.examples.map((ex, i) => (
+                        <li
+                            className="app__example"
+                            key={i}
+                            onClick={() => {
+                                const newText = `${text} ${ex}.`;
+                                setText(newText);
+                                setErrors(parser.validate(newText));
+                            }}
+                        >
+                            {ex}.
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
     );
 }
 
