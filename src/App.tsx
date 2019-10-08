@@ -87,7 +87,7 @@ const App = () => {
                     
                     const clicked = () => setSelectedError(e === highlightedError ? undefined : e);
 
-                    return <li key={i} className={classes} onClick={clicked}>{e.message}</li>
+                    return <li key={i} className={classes} onClick={clicked}>{e.message} (position {e.startIndex}, length {e.length})</li>
                 })}
             </ol>
         </>
