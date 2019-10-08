@@ -1,7 +1,7 @@
 import * as React from 'react';
 import './App.css';
 import { ConfigTextArea } from './ui';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { IParserError, ConfigurationParser } from 'natural-configuration';
 
 interface IString {
@@ -65,6 +65,24 @@ const App = () => {
 
     const [highlightedError, setHighlightedError] = useState(undefined as IParserError | undefined);
 
+    const errorDisplay = useMemo(() => errors.length === 0
+        ? <div className="app__noList">No errors in configuration text.</div>
+        : (
+            <ol className="app__errorList">
+                {errors.map((e, i) => {
+                    const classes = e === highlightedError
+                        ? 'app__error app__error--selected'
+                        : 'app__error'
+                    
+                    const clicked = () => setHighlightedError(e === highlightedError ? undefined : e);
+
+                    return <li key={i} className={classes} onClick={clicked}>{e.message} (position {e.startIndex}, length {e.length})</li>
+                })}
+            </ol>
+        ),
+        [errors]
+    );
+
     return (
         <div className="app">
             <ConfigTextArea
@@ -81,17 +99,7 @@ const App = () => {
 
             <div className="app__errors">
                 <div className="app__sectionHeading">Errors (click to highlight)</div>
-                <ol className="app__errorList">
-                    {errors.map((e, i) => {
-                        const classes = e === highlightedError
-                            ? 'app__error app__error--selected'
-                            : 'app__error'
-                        
-                        const clicked = () => setHighlightedError(e === highlightedError ? undefined : e);
-
-                        return <li key={i} className={classes} onClick={clicked}>{e.message} (position {e.startIndex}, length {e.length})</li>
-                    })}
-                </ol>
+                {errorDisplay}
             </div>
 
             <div className="app__examples">

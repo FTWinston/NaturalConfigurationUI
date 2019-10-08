@@ -40,3 +40,7 @@
 .app__sectionHeading {
     font-weight: bold;
 }
+
+.app__noList {
+    font-style: italic;
+}
