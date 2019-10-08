@@ -15,54 +15,65 @@ interface Props {
 export const ConfigTextArea: FunctionComponent<Props> = props => {
     const backdrop = useRef<HTMLDivElement>(null);
 
-    const [isIE, isIOS] = useMemo(() => {
+    // iOS adds 3px of (unremovable) padding to the sides of a textarea, so adjust highlights div to match
+    const highlightStyle = useMemo(() => {
         const ua = window.navigator.userAgent.toLowerCase();
-        const ie = !!ua.match(/msie|trident\/7|edge/);
         const ios = !!ua.match(/ipad|iphone|ipod/) && ua.indexOf('windows phone') === -1;
-        return [ie, ios];
+        
+        return ios
+            ? {
+                paddingLeft: '+=3px',
+                paddingRight: '+=3px',
+            }
+            : undefined;
     }, []);
 
-    // iOS adds 3px of (unremovable) padding to the sides of a textarea, so adjust highlights div to match
-    const highlightStyle = useMemo(() => isIOS
-        ? {
-            paddingLeft: '+=3px',
-            paddingRight: '+=3px',
+    const modifyText = useMemo(() => {
+        const ua = window.navigator.userAgent.toLowerCase();
+        const ie = !!ua.match(/msie|trident\/7|edge/);
+
+        // IE wraps whitespace differently in a div vs textarea, this should correct that
+        if (ie) {
+            return (text: string) => text
+                .replace(/\n$/g, '\n\n')
+                .replace(/ /g, ' <wbr>')
         }
-        : undefined,
-        [isIOS]
-    );
+
+        return (text: string) => text
+                .replace(/\n$/g, '\n\n');
+    }, []);
 
     const textWithMarks = useMemo(() => {
-        let text = props.text;
+        const elements: Array<JSX.Element | string> = [];
+        let nextKey = 0;
+        let readPos = 0;
 
         const sortedErrors = props.errors.sort((a, b) => a.startIndex < b.startIndex ? -1 : a.startIndex === b.startIndex ? 0 : 1);
 
-        let offset = 0;
+        const text = props.text;
+
         for (const error of sortedErrors) {
-            const startPos = error.startIndex + offset;
-            const endPos = startPos + error.length;
+            if (error.startIndex < readPos) {
+                continue; // where errors overlap, only the first of each overlapping set will show
+            }
 
-            const openingTag = error === props.highlightedError
-                ? '<mark class="natConfig__mark natConfig__mark--selected">'
-                : '<mark class="natConfig__mark">';
-            const closingTag = '</mark>';
+            const precedingText = modifyText(text.substring(readPos, error.startIndex));
 
-            text = text.slice(0, startPos) + openingTag
-                + text.slice(startPos, endPos) + closingTag
-                + text.slice(endPos);
+            const markedText = modifyText(text.substr(error.startIndex, error.length));
 
-            offset += openingTag.length + closingTag.length;
+            const classes = error === props.highlightedError
+                ? 'natConfig__mark natConfig__mark--selected'
+                : 'natConfig__mark';
+
+            elements.push(precedingText);
+
+            elements.push(<mark className={classes} key={nextKey++}>{markedText}</mark>)
+
+            readPos = error.startIndex + error.length;
         }
 
-        text = text.replace(/\n$/g, '\n\n');
-
-        if (isIE) {
-            // IE wraps whitespace differently in a div vs textarea, this fixes it
-            text = text.replace(/ /g, ' <wbr>');
-        }
-
-        return text;
-    }, [props.text, props.errors, props.highlightedError, isIE])
+        return elements;
+    }, [props.text, props.errors, props.highlightedError, modifyText])
 
     const { onChange, onEnterError, errors } = props;
 
@@ -109,8 +120,9 @@ export const ConfigTextArea: FunctionComponent<Props> = props => {
                 <div
                     className="natConfig__highlights"
                     style={highlightStyle}
-                    dangerouslySetInnerHTML={{__html: textWithMarks}}
-                />
+                >
+                    {textWithMarks}
+                </div>
             </div>
             <textarea
                 className="natConfig__text"
