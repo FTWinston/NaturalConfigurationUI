@@ -11,21 +11,22 @@ interface IString {
 const parser = new ConfigurationParser<IString>([
     {
         type: 'standard',
-        expressionText: 'Replace \"(.*)\" with \"(.*)\"',
-        parseMatch: (modify, match) => {
+        expressionText: 'Replace "(.*)" with "(.*)"',
+        parseMatch: (match, action, error) => {
             if (match[1].length === 0) {
-                return [{
+                error({
                     startIndex: 8,
                     length: 2,
                     message: 'Match text cannot be empty.'
-                }];
+                });
+        
+                return;
             }
         
             const before = new RegExp(match[1], 'g');
             const after = match[2];
         
-            modify.value = modify.value.replace(before, after);
-            return [];
+            action(modify => modify.value = modify.value.replace(before, after));
         },
         examples: [
             'Replace "x" with "y"',
@@ -35,22 +36,20 @@ const parser = new ConfigurationParser<IString>([
     {
         type: 'standard',
         expressionText: 'Convert to (.+) case',
-        parseMatch: (modify, match) => {
+        parseMatch: (match, action, error) => {
             if (match[1] === 'upper') {
-                modify.value = modify.value.toUpperCase();
+                action(modify => modify.value = modify.value.toUpperCase());
             }
             else if (match[1] === 'lower') {
-                modify.value = modify.value.toLowerCase();
+                action(modify => modify.value = modify.value.toLowerCase());
             }
             else {
-                return [{
+                error({
                     startIndex: 11,
                     length: match[1].length,
                     message: `Unexpected case value: ${match[1]}`
-                }];
+                });
             }
-    
-            return [];
         },
         examples: [
             'Convert to upper case',
@@ -72,7 +71,7 @@ const App = () => {
                 text={text}
                 onChange={newText => {
                     setText(newText);
-                    setErrors(parser.parse({value: 'Test value to modify'}, newText));
+                    setErrors(parser.validate(newText));
                 }}
                 errors={errors}
                 highlightedError={highlightedError}
